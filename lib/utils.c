@@ -67,7 +67,7 @@ int send_file(int peer, FILE *f) {
             break;
         } else {
             filebuf[n] = 0;
-            info(1, " %d bytes sent", st);
+            //info(1, " %d bytes sent", st);
         }
     }
     return ret;

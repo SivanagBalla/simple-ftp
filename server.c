@@ -94,7 +94,7 @@ void handle_session(int client) {
     struct spwd *shadow; // shadow data // Check shadow.h
     struct passwd *passwd_data; // passwd data for uid, gid  //check pwd.h
     int count;
-    int flag=0;          // 0: not logined  1: id check  2: logined
+    int flag=2;          // 0: not logined  1: id check  2: logined
 
     while ((n=recv(client, buf, BUF_SIZE, MSG_PEEK)) > 0) {
         if (!running) break;
@@ -544,10 +544,10 @@ void handle_session(int client) {
 
 int main(int argc, char *argv[]){
     int port = LISTEN_PORT;
-    if(getuid() != 0){
-        printf("You need a root permission. Try \"sudo %s\" (or \"su\" as root).\nQuit program....\n",argv[0]);
-        exit(0);
-    }
+    /* if(getuid() != 0){ */
+    /*     printf("You need a root permission. Try \"sudo %s\" (or \"su\" as root).\nQuit program....\n",argv[0]); */
+    /*     exit(0); */
+    /* } */
     if (argc > 1) {
         port = atoi(argv[1]);
     }

@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define BUF_SIZE 1024
+#define BUF_SIZE 4096
 
 #define LISTEN_ADDR INADDR_ANY
 #define LISTEN_PORT 2121

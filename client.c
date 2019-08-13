@@ -29,6 +29,9 @@ enum USER_CMD {
     USER_LLS,
     USER_LPWD,
     USER_HELP,
+    USER_QUIT,
+    USER_EXIT,
+    USER_Q,
     USER_COUNT
 };
 
@@ -52,6 +55,9 @@ struct ftp_cmd USER_CMD_LIST[USER_COUNT] = {
     {"LCD", USER_LCD},
     {"LLS", USER_LLS},
     {"LPWD", USER_LPWD},
+    {"QUIT", USER_QUIT},
+    {"EXIT", USER_EXIT},
+    {"Q", USER_Q},
     {"HELP", USER_HELP}
 };
 
@@ -266,6 +272,11 @@ int main(int argc, char *argv[]) {
                     send_str(client, "PASV\r\n");
                     strcpy(filename, &line[4]);
                     state = ST_PASVPUT;
+                    break;
+                case USER_Q:
+                case USER_QUIT:
+                case USER_EXIT:
+                    ouch();
                     break;
                 default:
                     warn(1, "unknown user cmd");

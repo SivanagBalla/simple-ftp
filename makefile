@@ -18,8 +18,7 @@ print_server:test/print_server.c ${libs} $(BIN)
 	${CC} ${CCFLAGS} -o./${BIN}/$@ test/print_server.c ${libs}
 
 $(BIN):
-	if [ ! -d /tmp/bin ]; then mkdir /tmp/bin; fi
-	ln -s /tmp/bin bin
+	if [ ! -d bin ]; then mkdir bin; fi
 
 clean:
 	rm ./${BIN}/*.o
