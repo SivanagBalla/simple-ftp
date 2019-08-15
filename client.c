@@ -91,14 +91,45 @@ void ouch() {
 }
 
 int main(int argc, char *argv[]) {
-    int server_port = 2121;
+    int server_port = LISTEN_PORT;
+    int non_interactive = 0;
+    int cmd_pos = 3;
+    char cmd_line[BUF_SIZE] = {0};
 
     if (argc < 2) {
         printf("usage: %s <addr> [2121]\n", argv[0]);
         exit(0);
     }
-    if (argc == 3) {
+
+    if (argc >= 3) {
         server_port = atoi(argv[2]);
+        if ( server_port == 0 ) {
+            enum USER_CMD cmd = parse_input_cmd(argv[2], strlen(argv[2]));
+            if (cmd == USER_GET || cmd == USER_PUT) {
+                non_interactive = 1;
+                cmd_pos = 2;
+                server_port = LISTEN_PORT;
+            } else {
+                err(1, "invalid port: %d", server_port);
+                exit(1);
+            }
+        }
+    }
+
+    if ((cmd_pos == 2 && argc == 4) ||
+        (cmd_pos == 3 && argc == 5)) {
+        enum USER_CMD cmd = parse_input_cmd(argv[cmd_pos], strlen(argv[cmd_pos]));
+        switch(cmd) {
+            case USER_GET:
+            case USER_PUT:
+                non_interactive = 1;
+                strcpy(cmd_line, argv[cmd_pos]);
+                cmd_line[3] = ' ';
+                strcpy(cmd_line + 4, argv[cmd_pos+1]);
+                break;
+            default:
+                break;
+        }
     }
     int client = new_client(ntohl(inet_addr(argv[1])), server_port);
     if (client < 0) {
@@ -175,7 +206,7 @@ int main(int argc, char *argv[]) {
                                 send_file(data_client, f);
                                 fclose(f);
                             } else {
-                                err(1, "err open file %s", filename);
+                                err(1, "err open file '%s'", filename);
                             }
                         }
                         info(1, "closing data socket ... %d", close(data_client));
@@ -195,8 +226,12 @@ int main(int argc, char *argv[]) {
         int valid = 0;
         while (!valid) {
             valid = 1;
-            printf("ftp >>> ");
-            if (!fgets(line, BUF_SIZE, stdin)){
+            printf("ftp > ");
+            if (non_interactive) {
+                printf("%s\n", cmd_line);
+                strcpy(line, cmd_line);
+                strcpy(cmd_line, "exit");
+            } else if (!fgets(line, BUF_SIZE, stdin)){
                 running = 0;
                 break;
             }
@@ -205,6 +240,10 @@ int main(int argc, char *argv[]) {
             while (line[len] == '\n' || line[len] == '\r') len--;
             len ++;
             line[len] = 0;
+            if (strnlen(line, BUF_SIZE) == 0) {
+                valid = 0;
+                continue;
+            }
             enum USER_CMD cmd = parse_input_cmd(line, len);
             switch(cmd) {
                 case USER_USER:

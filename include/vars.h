@@ -81,7 +81,7 @@ extern struct ftp_cmd FTP_CMD_LIST[FTP_CMD_COUNT];
 
 #define W(s,d) "%d "s" \r\n",d
 #define FTP_OK W("OK",RPL_OK)
-#define FTP_RDY W("Welcome to zTrix FTP", RPL_RDY)
+#define FTP_RDY W("Welcome to zTrix FTP, hacked by siballa", RPL_RDY)
 #define FTP_QUIT W("Welcome back", RPL_QUIT)
 #define FTP_HELP W("Help msg", RPL_OK)
 #define FTP_NAMEOK W("User name okay need password", RPL_NAMEOK)
