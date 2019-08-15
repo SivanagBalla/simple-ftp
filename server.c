@@ -271,7 +271,7 @@ void handle_session(int client) {
                         getcwd(cwd, sizeof(cwd));
                         sprintf(cmdbuf, "ls -l %s", cwd);
                         FILE *p1 = popen(cmdbuf, "r");
-                        send_file(data_client, p1);
+                        send_file(data_client, p1, 0);
                         send_str(client, FTP_TRSF_OK);
                         pclose(p1);
                         info(1, "LIST , data client closed, status %d", close(data_client));

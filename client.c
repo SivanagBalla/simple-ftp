@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
                         } else if (state == ST_PASVPUT2) {
                             FILE *f = fopen(filename, "rb");
                             if (f) {
-                                send_file(data_client, f);
+                                send_file(data_client, f, 1);
                                 fclose(f);
                             } else {
                                 err(1, "err open file '%s'", filename);

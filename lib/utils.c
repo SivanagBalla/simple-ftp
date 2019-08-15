@@ -56,9 +56,24 @@ int send_str(int peer, const char* fmt, ...) {
 /**
  * -1 error, 0 ok
  */
-int send_file(int peer, FILE *f) {
+int send_file(int peer, FILE *f, int progress) {
     char filebuf[BUF_SIZE+1];
     int n, ret = 0;
+    long tot_bytes, nb = 0, incr;
+    if (progress) {
+        long cur_pos = ftell(f);
+        fseek(f, 0L, SEEK_END);
+        tot_bytes = ftell(f);
+        if (tot_bytes < 4096) {
+            progress = 0;
+        }
+        else {
+            fseek(f, cur_pos, SEEK_SET);
+            printf("Transferring %ld bytes\n", tot_bytes - cur_pos);
+            printf("|----|----|----|----|\n|");
+            incr = (tot_bytes - cur_pos)/20;
+        }
+    }
     while ((n=fread(filebuf, 1, BUF_SIZE, f)) > 0) {
         int st = send(peer, filebuf, n, 0);
         if (st < 0) {
@@ -69,6 +84,17 @@ int send_file(int peer, FILE *f) {
             filebuf[n] = 0;
             //info(1, " %d bytes sent", st);
         }
+        if(progress) {
+            nb += n;
+            if ( nb > incr ) {
+                printf("*");
+                fflush(stdout);
+                nb = 0;
+            }
+        }
+    }
+    if (progress) {
+        printf("|\n");
     }
     return ret;
 }
@@ -80,7 +106,7 @@ int send_path(int peer, char *file, uint32_t offset) {
     FILE *f = fopen(file, "rb");
     if (f) {
         fseek(f, offset, SEEK_SET);
-        int st = send_file(peer, f);
+        int st = send_file(peer, f, 0);
         if (st < 0) {
             return -2;
         }
