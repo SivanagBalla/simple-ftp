@@ -4,14 +4,14 @@ CCFLAGS:=-Iinclude
 CRYPT:=-lcrypt
 BIN:=bin
 
-all: client ftpd print_server
+all: siftp siftpd print_server
 
 libs:=lib/utils.c lib/zlog.c lib/vars.c
 
-ftpd:server.c ${libs} $(BIN)
+siftpd:server.c ${libs} $(BIN)
 	${CC} ${CCFLAGS} -o./${BIN}/$@ server.c ${libs} ${CRYPT}
 
-client:client.c ${libs} $(BIN)
+siftp:client.c ${libs} $(BIN)
 	${CC} ${CCFLAGS} -o./${BIN}/$@ client.c ${libs}
 
 print_server:test/print_server.c ${libs} $(BIN)
