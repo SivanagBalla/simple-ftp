@@ -10,8 +10,8 @@ int new_client(uint32_t srv_addr, unsigned short port);
 int send_str(int peer, const char *fmt, ...);
 int send_file(int peer, FILE *f, int progress);
 int send_path(int peer, char *file, uint32_t offset);
-int recv_file(int peer, FILE *f);
-int recv_path(int peer, char *file, uint32_t offset);
+int recv_file(int peer, FILE *f, uint32_t filesize);
+int recv_path(int peer, char *file, uint32_t offset, uint32_t filesize);
 
 int parse_number(const char *buf, uint32_t *number);
 int parse_addr_port(const char *buf, uint32_t *addr, uint16_t *port);

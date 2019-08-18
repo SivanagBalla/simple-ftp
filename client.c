@@ -32,6 +32,7 @@ enum USER_CMD {
     USER_QUIT,
     USER_EXIT,
     USER_Q,
+    USER_SIZE,
     USER_COUNT
 };
 
@@ -55,6 +56,7 @@ struct ftp_cmd USER_CMD_LIST[USER_COUNT] = {
     {"LCD", USER_LCD},
     {"LLS", USER_LLS},
     {"LPWD", USER_LPWD},
+    {"SIZE", USER_SIZE},
     {"QUIT", USER_QUIT},
     {"EXIT", USER_EXIT},
     {"Q", USER_Q},
@@ -76,6 +78,7 @@ enum USER_CMD parse_input_cmd(char* buf, int len) {
 
 enum CLIENT_STATE {
     ST_NONE,
+    ST_SIZE,
     ST_PASVLIST,
     ST_PASVLIST2,
     ST_PASVGET,
@@ -149,6 +152,7 @@ int main(int argc, char *argv[]) {
     int code = -1;
     enum CLIENT_STATE state = ST_NONE;
     char filename[BUF_SIZE], line[BUF_SIZE];
+    int filesize = 0;
 
     while ((n=recv(client, buf, sizeof(buf), MSG_PEEK)) > 0) {
         if (!running) break;
@@ -187,6 +191,21 @@ int main(int argc, char *argv[]) {
                         data_client = new_client(addr, port);
                         state++;
                     } else {
+                        err(1, " get unknown response, %d", code);
+                        state = ST_NONE;
+                    }
+                    break;
+                case ST_SIZE:
+                    if (code == RPL_FILEST) {
+                        strcpy(tmpbuf, buf);
+                        tmpbuf[0] = tmpbuf[1] = tmpbuf[2] = tmpbuf[3] = ' ';
+                        parse_number(tmpbuf, &filesize);
+                        info(1, "filesize :%d", filesize);
+
+                        send_str(client, "PASV\r\n");
+                        state = ST_PASVGET;
+                    } else {
+                        err(1, "unknown response");
                         state = ST_NONE;
                     }
                     break;
@@ -197,9 +216,9 @@ int main(int argc, char *argv[]) {
                         err(1, "data client not created");
                     } else {
                         if (state == ST_PASVLIST2) {
-                            recv_file(data_client, stdout);
+                            recv_file(data_client, stdout, filesize);
                         } else if (state == ST_PASVGET2) {
-                            recv_path(data_client, filename, 0);
+                            recv_path(data_client, filename, 0, filesize);
                         } else if (state == ST_PASVPUT2) {
                             FILE *f = fopen(filename, "rb");
                             if (f) {
@@ -263,6 +282,10 @@ int main(int argc, char *argv[]) {
                 case USER_CD:
                     send_str(client, "CWD %s\r\n", &line[3]);
                     break;
+                case USER_SIZE:
+                    send_str(client, "SIZE %s\r\n", &line[5]);
+                    state = ST_SIZE;
+                    break;
                 case USER_PWD:
                     send_str(client, "PWD\r\n");
                     break;
@@ -303,9 +326,10 @@ int main(int argc, char *argv[]) {
                     valid = 0;
                     break;
                 case USER_GET:
-                    send_str(client, "PASV\r\n");
                     strcpy(filename, &line[4]);
-                    state = ST_PASVGET;
+                    filesize = 0;
+                    send_str(client, "SIZE %s\r\n", filename);
+                    state = ST_SIZE;
                     break;
                 case USER_PUT:
                     send_str(client, "PASV\r\n");

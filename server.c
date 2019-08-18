@@ -99,7 +99,7 @@ void handle_session(int client) {
     while ((n=recv(client, buf, BUF_SIZE, MSG_PEEK)) > 0) {
         if (!running) break;
         buf[n] = '\0';
-        //info(1, "recved %d bytes: %s", n, buf);
+        info(1, "recved %d bytes: %s", n, buf);
         for (i=0; i<n; i++) {
             if (buf[i] == '\n') break;
         }
@@ -393,7 +393,7 @@ void handle_session(int client) {
                         send_str(1, FTP_ERR_PARAM, "RETR");
                         break;
                     } else {
-                        int st = recv_path(data_client, p, restdata);
+                        int st = recv_path(data_client, p, restdata, 0);
                         if (st >= 0) {
                             send_str(client, FTP_TRSF_OK);
                             restdata = 0;

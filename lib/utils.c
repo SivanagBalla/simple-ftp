@@ -117,11 +117,30 @@ int send_path(int peer, char *file, uint32_t offset) {
     return ret == 0 ? 0 : -3;
 }
 
-int recv_file(int peer, FILE *f) {
+int recv_file(int peer, FILE *f, uint32_t filesize) {
     char filebuf[BUF_SIZE];
-    int n;
+    int incr;
+    int n, nb;
+    if (filesize < BUF_SIZE) {
+        filesize  = 0;
+    } else {
+        printf("Transferring %ld bytes\n", filesize);
+        printf("|----|----|----|----|\n|");
+        incr = filesize/20;
+    }
     while ((n=recv(peer, filebuf, BUF_SIZE, 0)) > 0) {
         fwrite(filebuf, 1, n, f);
+        if (filesize) {
+            nb += n;
+            if ( nb > incr ) {
+                printf("*");
+                fflush(stdout);
+                nb = 0;
+            }
+        }
+    }
+    if (filesize) {
+        printf("|\n");
     }
     return n;
 }
@@ -137,11 +156,11 @@ int recv_file(int peer, FILE *f) {
  *              EOF means close file error
  * 
  */
-int recv_path(int peer, char *file, uint32_t offset) {
+int recv_path(int peer, char *file, uint32_t offset, uint32_t filesize) {
     FILE *f = fopen(file, "wb");
     if (!f) return -2;
     fseek(f, offset, SEEK_SET);
-    int st = recv_file(peer, f);
+    int st = recv_file(peer, f, filesize);
     int cl = fclose(f);
     return st < 0 ? st : cl;
 }
